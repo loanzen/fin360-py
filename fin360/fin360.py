@@ -1,6 +1,19 @@
 import requests
 from attrdict import AttrDict
 
+SUPPORTED_BANKS = ['ICICI', 'SBI', 'KOTAK', 'YES', 'HDFC', 'AXIS', 'SYNDICATE', 'CORPORATION', 'PNB', 'UNITED_BANK',
+                   'INDUSIND', 'CENTRAL_BANK', 'CITI', 'DBS', 'CANARA', 'STANDARD_CHARTERED', 'RBL', 'UNION_BANK',
+                   'ALLAHABAD', 'BANK_OF_BARODA', 'STATE_BANK_PATIALA', 'STATE_BANK_MYSORE', 'STATE_BANK_TRAVANCORE',
+                   'TAMILNAD_MERCANTILE', 'STATE_BANK_BIKANER_JAIPUR', 'STATE_BANK_HYDERABAD', 'BANK_OF_INDIA',
+                   'BANK_OF_MAHARASHTRA', 'DENA_BANK', 'INDIAN_BANK', 'INDIAN_OVERSEAS', 'ORIENTAL_BANK', 'PUNJAB_SIND',
+                   'UCO', 'VIJAYA', 'IDBI', 'BANDHAN', 'CATHOLIC_SYRIAN', 'CITY_UNION', 'DHANLAXMI', 'DCB', 'FEDERAL',
+                   'IDFC', 'KARNATAKA', 'JAMMU_KASHMIR', 'KARUR_VYASA', 'LAKSHMI_VILAS', 'NAINITAL', 'SOUTH_INDIAN',
+                   'RBS', 'SARASWAT_BANK', 'TJSB', 'DNB', 'DEUTSCHE_BANK', 'GREATER_BOMBAY', 'APNA_SAHAKARI_BANK',
+                   'AKHAND_ANAND', 'BASSEIN_CATHOLIC', 'ANDHRA_BANK', 'PUNJAB_MAHARASHTRA_CO_OP_BANK', 'HSBC', 'BHARAT',
+                   'SVC_BANK', 'SREENIDHI_SOUHARDA_SAHAKARI_BANK', 'OCEAN_FIRST']
+
+SUPPORTED_ACCOUNT_TYPES = ['SAVING', 'CURRENT', 'CREDIT_CARD']
+
 
 class Fin360ApiException(Exception):
 
@@ -46,6 +59,22 @@ class Fin360Client(object):
         self.access_token = response.json()['access_token']
 
         return AttrDict(response.json())
+
+    def upload_statement(self, statement):
+        url = "https://www.fin360.in/bank-connect/api/v1/uploadStatement"
+        querystring = {"access_token": self.access_token}
+
+        if statement['bank'].upper() not in SUPPORTED_BANKS:
+            raise ValueError('{} is an unsupported bank'.format(statement['bank']))
+
+        if statement['accountType'].upper() not in SUPPORTED_ACCOUNT_TYPES:
+            raise ValueError('{} is an unsupported account type'.format(statement['accountType']))
+
+        files = {'bankStmt': open(statement['bankStmt'], 'rb')}
+        response = requests.request("POST", url, params=querystring, files=files, data=statement)
+
+        if response.status_code is not 200:
+            raise Fin360ApiException(response.status_code)
 
     def get_transactions_with_details(self, account_id):
         '''
