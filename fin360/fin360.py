@@ -75,7 +75,7 @@ class Fin360Client(object):
 
         if response.status_code is not 200:
             raise Fin360ApiException(response.status_code)
-
+        return AttrDict(response.json())
     def get_transactions_with_details(self, account_id):
         '''
             Returns transactions of a given statement (given account_id) in json format.
