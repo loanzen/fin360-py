@@ -61,7 +61,7 @@ class Fin360Client(object):
         return AttrDict(response.json())
 
     def upload_statement(self, statement):
-        url = "https://www.fin360.in/bank-connect/api/v1/uploadStatement"
+        url = '{}/bank-connect/api/v1/uploadStatement'.format(self.BASE_URL)
         querystring = {"access_token": self.access_token}
 
         if statement['bank'].upper() not in SUPPORTED_BANKS:
@@ -76,14 +76,15 @@ class Fin360Client(object):
         if response.status_code is not 200:
             raise Fin360ApiException(response.status_code)
         return AttrDict(response.json())
-    def get_transactions_with_details(self, account_id):
+
+    def get_transactions_with_details(self, account_uid):
         '''
-            Returns transactions of a given statement (given account_id) in json format.
+            Returns transactions of a given statement (given account_uid) in json format.
 
             Paramaters
             ----------
-            arg1: account_id
-                    account_id is returned from upload statement or upload multiple statements methods
+            arg1: account_uid
+                    account_uid is returned from upload statement or upload multiple statements methods
 
             Returns
             -------
@@ -144,11 +145,20 @@ class Fin360Client(object):
                 ]
             }
         '''
-        url = '{0}/bank-account/api/v1/transactionsWithDetails/{1}.json'.format(self.BASE_URL, account_id)
+        url = '{0}/bank-account/api/v1/transactionsWithDetails/{1}.json'.format(self.BASE_URL, account_uid)
         querystring = {"access_token": self.access_token}
 
         response = requests.request("GET", url, params=querystring)
         if response.status_code is not 200:
             raise Fin360ApiException(response.status_code)
 
+        return AttrDict(response.json())
+
+    def get_date_range(self, account_uid):
+        url = '{0}/bank-account/api/v1/fetchDateRange/{1}.json'.format(self.BASE_URL, account_uid)
+        querystring = {"access_token": self.access_token}
+        response = requests.request("GET", url, params=querystring)
+
+        if response.status_code is not 200:
+            raise Fin360ApiException(response.status_code)
         return AttrDict(response.json())
