@@ -20,6 +20,7 @@ class Fin360ApiException(Exception):
     def __init__(self, status, **kwargs):
         description = kwargs.get('description', None)
         description_map = {
+            100: "Upload Error",
             400: "Bad Request",
             401: "Invalid Access Token",
             403: "Access Forbidden",
@@ -75,7 +76,10 @@ class Fin360Client(object):
 
         if response.status_code is not 200:
             raise Fin360ApiException(response.status_code)
-        return AttrDict(response.json())
+        response_json = AttrDict(response.json())
+        if response_json["status"] == "ERROR":
+            raise Fin360ApiException(100, description=response_json["errors"])
+        return response_json
 
     def get_transactions_with_details(self, account_uid):
         '''
